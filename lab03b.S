@@ -1,30 +1,51 @@
-    .section .data
-    .align 8                  // Align to 8 bytes for a quad word
-UIN: 
-    .quad 15                  // Replace 15 with the sum of digits of your UIN
+//====== DATA SECTION ======
+.data
+    .global UIN
+    .align  3       // Align to 2^3 = 8-byte boundary
 
-    .section .text
-    .global increment_UIN     // Make this callable from C
+UIN:
+    .quad   36      // 64-bit integer initialized to 36
 
-increment_UIN:
-    // Prologue (if needed, but minimal since we just use registers)
-    
-    MOV     X0, #0            // i = 0
+//====== TEXT SECTION ======
+.text
+    .global lab03b
+    .type   lab03b, %function
 
-loop_start:
-    CMP     X0, #5            // Compare i with 5
-    BGT     loop_end           // if i > 5, exit loop
+//--------------------------------------------------------------------
+// Function: lab03b
+// Description: Increments the global variable UIN 6 times in a loop.
+// Parameters: None
+// Return: x0 - The final value of UIN.
+//--------------------------------------------------------------------
+lab03b:
+    // Load the address of the global variable UIN into register x1
+    adr     x1, UIN
 
-    // Load current UIN value
-    LDR     X1, =UIN          // Load address of UIN
-    LDR     X2, [X1]          // Load UIN value into X2
+    // Initialize a loop counter (i) in register x0 to 0
+    mov     x0, #0
 
-    ADD     X2, X2, #1        // UIN = UIN + 1
+loop_inc_uin:
+    // Load the current value of UIN from memory into register x2
+    ldr     x2, [x1]
 
-    STR     X2, [X1]          // Store updated value back to UIN
+    // Increment the value
+    add     x2, x2, #1
 
-    ADD     X0, X0, #1        // i = i + 1
-    B       loop_start         // Jump back to start of loop
+    // Store the new, incremented value back into UIN in memory
+    str     x2, [x1]
 
-loop_end:
-    RET                        // Return to caller
+    // Increment the loop counter
+    add     x0, x0, #1
+
+    // Compare the loop counter to 6
+    cmp     x0, #6
+
+    // If the counter is not equal to 6, branch back to the start of the loop
+    b.ne    loop_inc_uin
+
+    // Prepare the return value. The final value of UIN is in x2.
+    // The return value must be in x0.
+    mov     x0, x2
+
+    // Return from the function
+    ret
